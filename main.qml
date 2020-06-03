@@ -55,13 +55,22 @@ Rectangle {
         font.italic: false
         font.pointSize: 17
     }
+    
+    Text {
+        id: element
+        x: 702
+        y: 8
+        text: qsTr("    BATCH_SIZE = 64\n    BUFFER_SIZE = 100000\n    GAMMA = .99\n    EPS_START = .9\n    EPS_END = .05\n    EPS_DECAY = .995\n    LR = .0016")
+        font.pixelSize: 41
+    }
 
-    Grid {
-        id: grid
-        x: 0
-        y: 0
-        width: 1280
-        height: 727
+    Text {
+        id: element1
+        x: 807
+        y: 625
+        text: qsTr("Current score:")
+        renderType: Text.NativeRendering
+        font.pixelSize: 43
     }
 }
 }
