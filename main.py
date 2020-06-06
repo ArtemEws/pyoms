@@ -9,7 +9,8 @@ if __name__ == '__main__':
     app = QGuiApplication(sys.argv)
     backend = Backend()
 
-    backend.textChanged.connect(lambda text: print(text))
+    backend.modeChanged.connect(lambda text: print('Mode:', text))
+    backend.runChanged.connect(lambda text: print('Run: ', text))
     engine = QQmlApplicationEngine()
     engine.rootContext().setContextProperty("backend", backend)
     engine.load(QUrl.fromLocalFile('main.qml'))

@@ -1,5 +1,5 @@
 import QtQuick 2.10
-import QtQuick.Controls 2.1
+import QtQuick.Controls 2.15
 import QtQuick.Window 2.2
 import QtQuick.Layouts 1.11
 
@@ -17,13 +17,22 @@ Rectangle {
     visible: true
 
 
-    SwitchDelegate {
-        id: switch_Play_or_Education
+    Switch {
+        function click(){
+            if(backend.run){
+                toggle()
+            }
+            else{
+                backend.mode = !backend.mode
+            }
+        }
+        id: switchMode
         x: 0
         y: 580
         width: 278
         height: 140
-        text: qsTr("Play/Education ")
+        text: qsTr("Learning mode")
+        onClicked:  click()
     }
 
     Frame {
@@ -34,6 +43,14 @@ Rectangle {
         height: 132
         visible: true
         antialiasing: true
+        Text {
+            function newscore(){
+                return(backend.score)
+            }
+            text: newscore()
+            font.family: "Helvetica"
+            font.pointSize: 24
+        }
     }
 
     Frame {
@@ -42,35 +59,46 @@ Rectangle {
         y: 0
         width: 1280
         height: 574
+
+        GridView {
+            visible: true
+            width: 300; height: 200
+
+            model: none
+            delegate: Column {
+                Image { source: portrait; anchors.horizontalCenter: parent.horizontalCenter }
+                Text { text: name; anchors.horizontalCenter: parent.horizontalCenter }
+            }
+        }
     }
 
     Button {
+        function changeText() {
+            if (backend.run == true) {
+                return('Stop')
+            }
+            else{
+                return('Start')
+            }
+        }
         id: button_start
         x: 575
         y: 623
         width: 130
         height: 62
-        text: "Start "
+        text: changeText()
         font.bold: true
         font.italic: false
         font.pointSize: 17
-    }
-    
-    Text {
-        id: element
-        x: 702
-        y: 8
-        text: qsTr("    BATCH_SIZE = 64\n    BUFFER_SIZE = 100000\n    GAMMA = .99\n    EPS_START = .9\n    EPS_END = .05\n    EPS_DECAY = .995\n    LR = .0016")
-        font.pixelSize: 41
+        onClicked: backend.run = !backend.run
     }
 
-    Text {
-        id: element1
-        x: 807
-        y: 625
-        text: qsTr("Current score:")
-        renderType: Text.NativeRendering
-        font.pixelSize: 43
+    Grid {
+        id: grid
+        x: 0
+        y: 0
+        width: 1280
+        height: 727
     }
 }
 }
