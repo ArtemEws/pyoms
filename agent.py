@@ -9,17 +9,6 @@ import math
 import random
 from itertools import count
 
-from gym.envs.classic_control import rendering
-org_constructor = rendering.Viewer.__init__
-
-
-def constructor(self, *args, **kwargs):
-    org_constructor(self, *args, **kwargs)
-    self.window.set_visible(visible=False)
-
-
-rendering.Viewer.__init__ = constructor
-
 
 class Agent():
     BATCH_SIZE = 64
@@ -56,34 +45,25 @@ class Agent():
                 result = self.policy_net(state)
                 self.policy_net.train()
                 return np.argmax(result.cpu().data.numpy())
-
         else:
             return torch.tensor([[random.randrange(4)]], device=self.device, dtype=torch.long)
 
     def test(self):
         test_rewards = []
         print('test')
-        for i in range(100):
-            state = self.env.reset()
-            rewards = 0
-            for j in count():
-                self.condition.acquire()
-                if self.STOP_FLAG:
-                    break
-                self.condition.release()
-                action = self.select_action(torch.FloatTensor(state).to(self.device),
-                                            eps_threshold=self.EPS_END + (self.EPS_START - self.EPS_END) * math.exp(
-                                                -1. * i / self.EPS_DECAY))
-                state, reward, done, _ = self.env.step(action.item())
-                rewards += reward
-                if done:
-                    break
-            self.score = rewards
-            test_rewards.append(rewards)
-            if self.STOP_FLAG:
+        state = self.env.reset()
+        rewards = 0
+        for j in count():
+            action = self.select_action(torch.FloatTensor(state).to(self.device),
+                                        eps_threshold=self.EPS_END + (self.EPS_START - self.EPS_END) * math.exp(
+                                            -1. * 1000 / self.EPS_DECAY))
+            state, reward, done, _ = self.env.step(action.item())
+            self.env.render()
+            rewards += reward
+            if done:
                 break
         self.env.close()
-        return np.mean(test_rewards)
+        return reward
 
     def optimize_model(self):
 
@@ -114,7 +94,6 @@ class Agent():
         lr = self.LR
         all_rewards = []
         for i_episode in count():
-
             state = self.env.reset()
 
             rew_per_episode = 0
@@ -126,7 +105,6 @@ class Agent():
                 action = self.select_action(torch.FloatTensor(
                     state).to(self.device), eps_threshold)
                 next_state, env_reward, done, _ = self.env.step(action.item())
-
                 rew_per_episode += env_reward
                 if (t > 400) & (action.item() != 0):
                     env_reward -= 0.3
@@ -143,13 +121,14 @@ class Agent():
                     just_rewards.append(rew_per_episode)
                     break
 
-                self.condition.acquire()
-                if self.STOP_FLAG:
-                    break
-                self.condition.release()
                 if t % 4 == 0:
                     self.target_net.load_state_dict(
                         self.policy_net.state_dict())
+            self.condition.acquire()
+            if self.STOP_FLAG:
+                torch.save(self.policy_net.state_dict(), "model_mse_loss.nn")
+                break
+            self.condition.release()
             print('\rEpisode {} \tLearning rate {:.6f} \tAverage Score: {:.2f}'.format(i_episode + 1, lr,
                                                                                        np.mean(just_rewards)), end="")
             self.score = np.mean(just_rewards)
@@ -170,7 +149,4 @@ class Agent():
                             test_count += 1
                     if test_count > 2:
                         break
-            if self.STOP_FLAG:
-                torch.save(self.policy_net.state_dict(), "model_mse_loss.nn")
-                break
         self.env.close()

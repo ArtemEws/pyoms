@@ -5,6 +5,7 @@ from PySide2.QtQml import QQmlApplicationEngine
 from PySide2.QtQuick import QQuickView
 from backend import Backend
 
+
 if __name__ == '__main__':
     app = QGuiApplication(sys.argv)
     backend = Backend()
